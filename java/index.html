@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-
 <html>
 <head>
-
 <title>Smart Grievance Redressal System</title>
 
 <style>
@@ -10,7 +8,7 @@
 body{
 font-family:Arial;
 margin:0;
-background:#f2f4f8;
+background:#eef2f7;
 }
 
 header{
@@ -22,13 +20,13 @@ text-align:center;
 
 nav{
 background:#34495e;
-padding:10px;
 text-align:center;
+padding:10px;
 }
 
 nav button{
+padding:10px;
 margin:5px;
-padding:10px 15px;
 border:none;
 background:#1abc9c;
 color:white;
@@ -44,18 +42,17 @@ background:white;
 padding:20px;
 margin-bottom:20px;
 border-radius:6px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+box-shadow:0 0 8px rgba(0,0,0,0.1);
 }
 
-input,textarea,select{
+input,select,textarea{
 width:100%;
 padding:8px;
-margin-top:5px;
-margin-bottom:10px;
+margin:6px 0;
 }
 
 button.submit{
-background:#2ecc71;
+background:#27ae60;
 color:white;
 border:none;
 padding:10px;
@@ -65,7 +62,7 @@ width:100%;
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:20px;
+margin-top:15px;
 }
 
 th,td{
@@ -78,84 +75,92 @@ th{
 background:#ecf0f1;
 }
 
-.resolved{
-color:green;
-font-weight:bold;
-}
-
-.pending{
-color:red;
-font-weight:bold;
-}
-
-.flag{
-color:orange;
-font-weight:bold;
-}
-
 .hidden{
 display:none;
 }
 
-</style>
+.dashboard{
+display:flex;
+gap:10px;
+margin-bottom:15px;
+}
 
+.stat{
+flex:1;
+background:#1abc9c;
+color:white;
+padding:10px;
+text-align:center;
+border-radius:5px;
+}
+
+img{
+width:60px;
+}
+
+.captcha{
+background:#ddd;
+padding:8px;
+letter-spacing:3px;
+font-weight:bold;
+display:inline-block;
+margin-bottom:6px;
+}
+
+</style>
 </head>
 
 <body>
 
 <header>
-
-<h2>Smart Grievance Redressal & Escalation System</h2>
-
+<h2>Smart Grievance Redressal System</h2>
 </header>
 
 <nav>
-
 <button onclick="showUser()">User Panel</button>
-
 <button onclick="showAuthority()">Authority Panel</button>
-
 <button onclick="logout()">Logout</button>
-
 </nav>
 
 <div class="container">
+
+<!-- LOGIN -->
 
 <div id="loginSection" class="card">
 
 <h3>Login</h3>
 
-<label>Username</label>
-
-<input type="text" id="username">
-
-<label>Password</label>
-
-<input type="password" id="password">
-
 <select id="role">
-
 <option value="user">User</option>
-
 <option value="authority">Authority</option>
-
 </select>
+
+<div class="captcha" id="loginCaptcha"></div>
+
+<input id="loginCaptchaInput" placeholder="Enter captcha">
 
 <button class="submit" onclick="login()">Login</button>
 
 </div>
 
+<!-- USER PANEL -->
+
 <div id="userPanel" class="hidden">
+
+<div class="dashboard">
+<div class="stat" id="totalBox">Total:0</div>
+<div class="stat" id="pendingBox">Pending:0</div>
+<div class="stat" id="resolvedBox">Resolved:0</div>
+<div class="stat" id="escBox">Escalated:0</div>
+</div>
 
 <div class="card">
 
 <h3>Register Complaint</h3>
 
-<label>Name</label> <input id="name">
+<input id="name" placeholder="Name">
 
-<label>Email</label> <input id="email">
-
-<label>Department</label>
+<input id="contact" placeholder="Email OR 10 digit Phone">
 
 <select id="dept">
 <option>Electricity</option>
@@ -164,21 +169,19 @@ display:none;
 <option>Garbage</option>
 </select>
 
-<label>Complaint</label>
+<label>Location</label>
+<input id="location" readonly placeholder="Click Get Location">
 
-<textarea id="complaint"></textarea>
+<button onclick="getLocation()">Get Location</button>
+
+<textarea id="complaint" placeholder="Describe issue"></textarea>
 
 <label>Upload Evidence</label>
+<input type="file" id="imageUpload">
 
-<input type="file">
-
-<div>
-
-<span id="captcha"></span>
+<div class="captcha" id="complaintCaptcha"></div>
 
 <input id="captchaInput" placeholder="Enter captcha">
-
-</div>
 
 <button class="submit" onclick="submitComplaint()">Submit Complaint</button>
 
@@ -188,19 +191,22 @@ display:none;
 
 <h3>My Complaints</h3>
 
+<input placeholder="Search" onkeyup="searchUser(this.value)">
+
 <table>
 
 <thead>
-
 <tr>
 <th>ID</th>
-<th>Department</th>
+<th>Dept</th>
 <th>Complaint</th>
+<th>Location</th>
+<th>Image</th>
 <th>Status</th>
 <th>SLA</th>
 <th>Escalation</th>
+<th>Edit</th>
 </tr>
-
 </thead>
 
 <tbody id="userTable"></tbody>
@@ -211,25 +217,30 @@ display:none;
 
 </div>
 
+<!-- AUTHORITY PANEL -->
+
 <div id="authorityPanel" class="hidden">
 
 <div class="card">
 
-<h3>All Complaints (Authority)</h3>
+<h3>Authority Dashboard</h3>
+
+<input placeholder="Search complaints" onkeyup="searchAdmin(this.value)">
 
 <table>
 
 <thead>
-
 <tr>
 <th>ID</th>
 <th>Name</th>
-<th>Department</th>
+<th>Contact</th>
+<th>Dept</th>
+<th>Location</th>
 <th>Complaint</th>
+<th>Image</th>
 <th>Status</th>
 <th>Action</th>
 </tr>
-
 </thead>
 
 <tbody id="adminTable"></tbody>
@@ -244,73 +255,147 @@ display:none;
 
 <script>
 
-let complaints = JSON.parse(localStorage.getItem("complaints")) || []
+let complaints=JSON.parse(localStorage.getItem("complaints"))||[]
 
-let captchaCode = Math.floor(Math.random()*9000+1000)
+function generateCaptcha(){
 
-document.getElementById("captcha").innerHTML="Captcha: "+captchaCode
+let chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+let cap=""
+
+for(let i=0;i<5;i++){
+cap+=chars[Math.floor(Math.random()*chars.length)]
+}
+
+return cap
+}
+
+let loginCaptcha=generateCaptcha()
+let complaintCaptcha=generateCaptcha()
+
+document.getElementById("loginCaptcha").innerText=loginCaptcha
+document.getElementById("complaintCaptcha").innerText=complaintCaptcha
 
 function login(){
 
-let role=document.getElementById("role").value
+let val=document.getElementById("loginCaptchaInput").value
+
+if(val!=loginCaptcha){
+alert("Wrong captcha")
+return
+}
 
 document.getElementById("loginSection").style.display="none"
 
-if(role=="user"){
-showUser()
-}
+let role=document.getElementById("role").value
 
-else{
-showAuthority()
-}
+if(role=="user") showUser()
+else showAuthority()
 
 }
 
 function logout(){
-
 location.reload()
-
 }
 
 function showUser(){
-
 document.getElementById("userPanel").classList.remove("hidden")
-
 document.getElementById("authorityPanel").classList.add("hidden")
-
 displayUser()
-
 }
 
 function showAuthority(){
-
 document.getElementById("authorityPanel").classList.remove("hidden")
-
 document.getElementById("userPanel").classList.add("hidden")
-
 displayAdmin()
+}
+
+function getLocation(){
+
+if(!navigator.geolocation){
+alert("Location not supported")
+return
+}
+
+navigator.geolocation.getCurrentPosition(
+
+function(pos){
+
+let lat=pos.coords.latitude
+let lon=pos.coords.longitude
+
+document.getElementById("location").value="https://maps.google.com/?q="+lat+","+lon
+
+},
+
+function(){
+alert("Please allow location permission")
+}
+
+)
 
 }
 
 function submitComplaint(){
 
-let cap=document.getElementById("captchaInput").value
+let contact=document.getElementById("contact").value.trim()
 
-if(cap!=captchaCode){
-alert("Wrong Captcha")
+let phone=/^[0-9]{10}$/
+let email=/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+if(!(phone.test(contact)||email.test(contact))){
+alert("Enter valid email OR 10 digit phone")
 return
 }
 
+let cap=document.getElementById("captchaInput").value
+
+if(cap!=complaintCaptcha){
+alert("Wrong captcha")
+return
+}
+
+let file=document.getElementById("imageUpload").files[0]
+
+if(file){
+
+let reader=new FileReader()
+
+reader.onload=function(){
+saveComplaint(reader.result)
+}
+
+reader.readAsDataURL(file)
+
+}else{
+saveComplaint("")
+}
+
+}
+
+function saveComplaint(img){
+
 let comp={
-id:Date.now(),
+
+id:"CMP"+Math.floor(Math.random()*10000),
+
 name:document.getElementById("name").value,
-email:document.getElementById("email").value,
+
+contact:document.getElementById("contact").value,
+
 dept:document.getElementById("dept").value,
+
+location:document.getElementById("location").value,
+
 text:document.getElementById("complaint").value,
+
+image:img,
+
 status:"Pending",
+
 sla:3,
-date:new Date(),
-flag:false
+
+date:new Date()
+
 }
 
 complaints.push(comp)
@@ -326,33 +411,61 @@ displayUser()
 function displayUser(){
 
 let table=""
+let total=0
+let pending=0
+let resolved=0
+let esc=0
 
-complaints.forEach(c=>{
+complaints.forEach((c,i)=>{
 
-let esc="None"
+total++
 
-let now=new Date()
+if(c.status=="Resolved") resolved++
+else pending++
 
-let diff=(now-new Date(c.date))/(1000*60*60*24)
+let diff=(new Date()-new Date(c.date))/(1000*60*60*24)
+
+let escalation="None"
 
 if(diff>c.sla && c.status!="Resolved"){
-esc="Escalated"
+escalation="Escalated"
+esc++
 }
 
 table+=`
+
 <tr>
+
 <td>${c.id}</td>
+
 <td>${c.dept}</td>
+
 <td>${c.text}</td>
-<td class="${c.status=='Resolved'?'resolved':'pending'}">${c.status}</td>
+
+<td><a href="${c.location}" target="_blank">View</a></td>
+
+<td>${c.image?'<img src="'+c.image+'">':""}</td>
+
+<td>${c.status}</td>
+
 <td>${c.sla} days</td>
-<td>${esc}</td>
+
+<td>${escalation}</td>
+
+<td><button onclick="editComplaint(${i})">Edit</button></td>
+
 </tr>
+
 `
 
 })
 
 document.getElementById("userTable").innerHTML=table
+
+document.getElementById("totalBox").innerText="Total:"+total
+document.getElementById("pendingBox").innerText="Pending:"+pending
+document.getElementById("resolvedBox").innerText="Resolved:"+resolved
+document.getElementById("escBox").innerText="Escalated:"+esc
 
 }
 
@@ -360,24 +473,40 @@ function displayAdmin(){
 
 let table=""
 
-complaints.forEach(c=>{
+complaints.forEach((c,i)=>{
 
 table+=`
+
 <tr>
+
 <td>${c.id}</td>
+
 <td>${c.name}</td>
+
+<td>${c.contact}</td>
+
 <td>${c.dept}</td>
+
+<td><a href="${c.location}" target="_blank">Map</a></td>
+
 <td>${c.text}</td>
+
+<td>${c.image?'<img src="'+c.image+'">':""}</td>
+
 <td>${c.status}</td>
+
 <td>
 
-<button onclick="resolve(${c.id})">Resolved</button>
+<button onclick="updateStatus(${i},'Under Review')">Review</button>
 
-<button onclick="flag(${c.id})">Flag</button>
+<button onclick="updateStatus(${i},'In Progress')">Progress</button>
+
+<button onclick="updateStatus(${i},'Resolved')">Resolved</button>
 
 </td>
 
 </tr>
+
 `
 
 })
@@ -386,13 +515,9 @@ document.getElementById("adminTable").innerHTML=table
 
 }
 
-function resolve(id){
+function updateStatus(i,status){
 
-complaints.forEach(c=>{
-if(c.id==id){
-c.status="Resolved"
-}
-})
+complaints[i].status=status
 
 localStorage.setItem("complaints",JSON.stringify(complaints))
 
@@ -401,23 +526,35 @@ displayUser()
 
 }
 
-function flag(id){
+function editComplaint(i){
 
-complaints.forEach(c=>{
-if(c.id==id){
-c.flag=true
+let txt=prompt("Edit Complaint",complaints[i].text)
+
+if(txt){
+complaints[i].text=txt
+localStorage.setItem("complaints",JSON.stringify(complaints))
+displayUser()
 }
+
+}
+
+function searchUser(v){
+
+document.querySelectorAll("#userTable tr").forEach(r=>{
+r.style.display=r.innerText.toLowerCase().includes(v.toLowerCase())?"":"none"
 })
 
-alert("Complaint Flagged")
+}
+
+function searchAdmin(v){
+
+document.querySelectorAll("#adminTable tr").forEach(r=>{
+r.style.display=r.innerText.toLowerCase().includes(v.toLowerCase())?"":"none"
+})
 
 }
 
-setInterval(()=>{
-
-displayUser()
-
-},60000)
+setInterval(displayUser,60000)
 
 </script>
 
